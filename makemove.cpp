@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include "piece.h"
+#include "state.h"
 using namespace std;
 typedef vector<vector<optional<Piece>>> Board;
 Board makeMove(const Board& board, const Move& m){
