@@ -3,13 +3,14 @@
 using namespace std;
 // toMove == isWhite
 // piece.value.color == isWhite
-bool isSquareAttacked(const Position& position, int x, int y, bool whiteToMove) {
-    auto isFriendly  = [&](char c){ return c != ' ' && (bool)isupper(c) == position.whiteToMove;};
-
-    int dir = (whiteToMove) ? 1 : -1;
+bool isSquareAttacked(const Position& position, int x, int y, bool byWhite) {
+    auto at = [&](int a, int b, char p) {   // is there an attacker's piece 
+        return a >= 0 && a < 8 && b >= 0 && b < 8 && position.board[a][b] == (byWhite ? toupper(p) : p);
+    };
+    int dir = (byWhite) ? -1 : 1;
     //pawn
     for (int i : {1, -1}){
-        if (tolower(position.board[x+i][y+dir]) == 'p' && !isFriendly(position.board[x+i][y+dir])) return true;
+        if (at(x+i, y+dir, 'p')) return true;
     }
     //knight
     pair<int, int> knightMoves[] = {
@@ -25,7 +26,7 @@ bool isSquareAttacked(const Position& position, int x, int y, bool whiteToMove) 
     for (auto[i, j] : knightMoves){
         int nx = x + i;
         int ny = y + j;
-        if (tolower(position.board[nx][ny]) == 'n' && !isFriendly(position.board[nx][ny])) return true;
+        if (at(nx, ny, 'n')) return true;
     }
     //cardinal sliders
     pair<int, int> cardinalMoves[] = {
@@ -34,8 +35,51 @@ bool isSquareAttacked(const Position& position, int x, int y, bool whiteToMove) 
         {1, 0},
         {-1, 0}
     };
-    
-
+        for (auto [dx, dy] : cardinalMoves) {
+            int nx = x + dx, ny = y + dy;
+            while (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+                char c = position.board[nx][ny];
+                if (c != ' ') {
+                    if (at(nx, ny, 'r') || at(nx, ny, 'q')) return true;
+                    break;  
+                }
+                nx += dx; ny += dy;
+            }
+        }
+    //diagonal sliders
+    pair<int, int> diagMoves[] = {
+        {1, 1},
+        {-1, -1},
+        {1, -1},
+        {-1, 1}
+    };
+    for (auto [dx, dy] : diagMoves) {
+        int nx = x + dx, ny = y + dy;
+        while (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+            char c = position.board[nx][ny];
+            if (c != ' ') {
+                if (at(nx, ny, 'b') || at(nx, ny, 'q')) return true;
+                break;   
+            }
+            nx += dx; ny += dy;
+        }
+    }
+    //king
+    pair<int, int> kingMoves[] = {
+        {1, 1},
+        {-1, -1},
+        {-1, 1},
+        {1, -1},
+        {0, 1},
+        {1, 0}, 
+        {-1, 0},
+        {0, -1}
+    };
+    for (auto[i, j] : kingMoves){
+        int nx = x + i;
+        int ny = y + j;
+        if (at(nx, ny, 'k')) return true;
+    }
     return false;
 }
 vector<Move> pseudoLegalGen(const Position& position){
@@ -220,19 +264,23 @@ vector<Move> pseudoLegalGen(const Position& position){
         }
     }
     //castling
-    if (position.whiteToMove){
+    if (position.whiteToMove && !isSquareAttacked(position, 0, 4, position.whiteToMove)){
         if (position.castle[0]){
-            
+            if (!isSquareAttacked(position, 0, 5, position.whiteToMove)&&!isSquareAttacked(position, 0, 6, position.whiteToMove))
+                moves.emplace_back(0, 4, 0, 6, ' ', false, false, true);
         }
         if (position.castle[1]){
-
+            if (!isSquareAttacked(position, 0, 3, position.whiteToMove)&&!isSquareAttacked(position, 0, 2, position.whiteToMove))
+                moves.emplace_back(0, 4, 0, 2, ' ', false, false, true);
         }
-    } else {
+    } else if (!isSquareAttacked(position, 7, 4, position.whiteToMove)){
         if (position.castle[2]){
-
+            if (!isSquareAttacked(position, 7, 5, position.whiteToMove)&&!isSquareAttacked(position, 7, 6, position.whiteToMove))
+                moves.emplace_back(7, 4, 7, 6, false, false, true);
         }
         if (position.castle[3]){
-
+            if (!isSquareAttacked(position, 7, 3, position.whiteToMove)&&!isSquareAttacked(position, 7, 2, position.whiteToMove))
+                moves.emplace_back(7, 4, 7, 2, false, false, true);
         }
     }
     return moves;
