@@ -264,23 +264,23 @@ vector<Move> pseudoLegalGen(const Position& position){
         }
     }
     //castling
-    if (position.whiteToMove && !isSquareAttacked(position, 0, 4, position.whiteToMove)){
+    if (position.whiteToMove && !isSquareAttacked(position, 4, 0, position.whiteToMove)){
         if (position.castle[0]){
-            if (!isSquareAttacked(position, 0, 5, position.whiteToMove)&&!isSquareAttacked(position, 0, 6, position.whiteToMove))
-                moves.emplace_back(0, 4, 0, 6, ' ', false, false, true);
+            if (!isSquareAttacked(position, 5, 0, position.whiteToMove)&&!isSquareAttacked(position, 6, 0, position.whiteToMove))
+                moves.emplace_back(4, 0, 6, 0, ' ', false, false, true);
         }
         if (position.castle[1]){
-            if (!isSquareAttacked(position, 0, 3, position.whiteToMove)&&!isSquareAttacked(position, 0, 2, position.whiteToMove))
-                moves.emplace_back(0, 4, 0, 2, ' ', false, false, true);
+            if (!isSquareAttacked(position, 3, 0, position.whiteToMove)&&!isSquareAttacked(position, 2, 0, position.whiteToMove))
+                moves.emplace_back(4, 0, 2, 0, ' ', false, false, true);
         }
-    } else if (!isSquareAttacked(position, 7, 4, position.whiteToMove)){
+    } else if (!isSquareAttacked(position, 4, 7, position.whiteToMove)){
         if (position.castle[2]){
-            if (!isSquareAttacked(position, 7, 5, position.whiteToMove)&&!isSquareAttacked(position, 7, 6, position.whiteToMove))
-                moves.emplace_back(7, 4, 7, 6, false, false, true);
+            if (!isSquareAttacked(position, 5, 7, position.whiteToMove)&&!isSquareAttacked(position, 6, 7, position.whiteToMove))
+                moves.emplace_back(4, 7, 6, 7, false, false, true);
         }
         if (position.castle[3]){
-            if (!isSquareAttacked(position, 7, 3, position.whiteToMove)&&!isSquareAttacked(position, 7, 2, position.whiteToMove))
-                moves.emplace_back(7, 4, 7, 2, false, false, true);
+            if (!isSquareAttacked(position, 3, 7, position.whiteToMove)&&!isSquareAttacked(position, 2, 7, position.whiteToMove))
+                moves.emplace_back(4, 7, 2, 7, false, false, true);
         }
     }
     return moves;

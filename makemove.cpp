@@ -1,8 +1,7 @@
 #include <bits/stdc++.h>
 #include "state.h"
 using namespace std;
-typedef vector<vector<optional<Piece>>> Board;
-Board makeMove(const Board& board, const Move& m){
+Board makeMove(const Position& position, const Move& m){
     Board next = board;
     for (int i = 0; i < 8; i++)
         for (int j = 0; j < 8; j++)
