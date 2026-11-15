@@ -37,3 +37,4 @@ Position makeMove(const Position& position, const Move& m){
     next.whiteToMove = !next.whiteToMove;
     return next;
 }
+
