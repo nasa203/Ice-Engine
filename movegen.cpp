@@ -248,7 +248,7 @@ vector<Move> pseudoLegalGen(const Position& position){
                         //moved out
                         break;
                     }
-                    default: {cout << "something triggered default in the pseudolegalgen"; break;};
+                    default: {cerr << "something triggered default in the pseudolegalgen"; break;};
                 }
             }
         }
@@ -265,27 +265,27 @@ vector<Move> pseudoLegalGen(const Position& position){
     }
     //castling
     if (position.whiteToMove){
-        if (!isSquareAttacked(position, 4, 0, !position.whiteToMove)){
+        if (!isSquareAttacked(position, 4, 0, !position.whiteToMove) && position.board[4][0] == 'K'){
             if (position.castle[0]){
-                if (position.board[5][0] == ' ' && position.board[6][0] == ' ' &&
+                if (position.board[5][0] == ' ' && position.board[6][0] == ' ' && position.board[7][0] == 'R' &&
                      !isSquareAttacked(position, 5, 0, !position.whiteToMove)&&!isSquareAttacked(position, 6, 0, !position.whiteToMove))
                     moves.emplace_back(4, 0, 6, 0, ' ', false, false, true);
             }
             if (position.castle[1]){
-                if (position.board[3][0] == ' ' && position.board[2][0] == ' ' && position.board[1][0] == ' ' && 
+                if (position.board[3][0] == ' ' && position.board[2][0] == ' ' && position.board[1][0] == ' ' && position.board[0][0] == 'R' &&
                     !isSquareAttacked(position, 3, 0, !position.whiteToMove)&&!isSquareAttacked(position, 2, 0, !position.whiteToMove))
                     moves.emplace_back(4, 0, 2, 0, ' ', false, false, true);
             }
         }
     } else {
-        if (!isSquareAttacked(position, 4, 7, !position.whiteToMove)){
+        if (!isSquareAttacked(position, 4, 7, !position.whiteToMove) && position.board[4][7] == 'k'){
             if (position.castle[2]){
-                if (position.board[5][7] == ' ' && position.board[6][7] == ' ' &&
+                if (position.board[5][7] == ' ' && position.board[6][7] == ' ' && position.board[7][7] == 'r' &&
                     !isSquareAttacked(position, 5, 7, !position.whiteToMove)&&!isSquareAttacked(position, 6, 7, !position.whiteToMove))
                     moves.emplace_back(4, 7, 6, 7, ' ', false, false, true);
             }
             if (position.castle[3]){
-                if (position.board[3][7] == ' ' && position.board[2][7] == ' ' && position.board[1][7] == ' ' && 
+                if (position.board[3][7] == ' ' && position.board[2][7] == ' ' && position.board[1][7] == ' ' && position.board[0][7] == 'r' &&
                     !isSquareAttacked(position, 3, 7, !position.whiteToMove)&&!isSquareAttacked(position, 2, 7, !position.whiteToMove))
                     moves.emplace_back(4, 7, 2, 7, ' ', false, false, true);
             }
@@ -336,6 +336,13 @@ Position makeMove(const Position& position, const Move& m){
 }
 
 
-bool validateMove(){
-    
+bool validateMove(const Position& position, const Move& m){
+    bool w2m = position.whiteToMove;
+    Position moved = makeMove(position, m);
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
+            if (tolower(moved.board[i][j]) == 'k' && (islower(moved.board[i][j]) == w2m)) return !isSquareAttacked(moved, i, j, !w2m);
+        }
+    }
+    return true;
 }
