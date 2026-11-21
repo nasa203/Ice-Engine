@@ -50,8 +50,9 @@ long long perft(const Position& position, int depth, bool isRoot = true){
     if (isRoot){
         vector<thread> threads;
         vector<long long> results;
-        for (const Move& m:legalMoves(position)){
-            results.emplace_back(0);
+        vector<Move> moves = legalMoves(position);
+        results.reserve(moves.size());
+        for (const Move& m:moves){
             size_t i = results.size() - 1;
             threads.emplace_back([&, m, i]() {
                 results[i] = perft(makeMove(position, m), depth - 1, false);
