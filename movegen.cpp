@@ -302,8 +302,8 @@ Position makeMove(const Position& position, const Move& m){
     Position next = position;
     // disable castling, remove peasant rights
     auto check = [&](int x, int y) {
-        if (x == 4 && y == 0) {next.castle[0] = next.castle[1] = false;}
-        if (x == 4 && y == 7) {next.castle[2] = next.castle[3] = false;}
+        if (x == 4 && y == 0) next.castle[0] = next.castle[1] = false;
+        if (x == 4 && y == 7) next.castle[2] = next.castle[3] = false;
         if (x == 7 && y == 0) next.castle[0] = false;
         if (x == 0 && y == 0) next.castle[1] = false;
         if (x == 7 && y == 7) next.castle[2] = false;
@@ -338,11 +338,21 @@ Position makeMove(const Position& position, const Move& m){
 
 bool validateMove(const Position& position, const Move& m){
     bool w2m = position.whiteToMove;
+    char king = w2m ? 'K' : 'k';
     Position moved = makeMove(position, m);
     for (int i = 0; i < 8; i++){
         for (int j = 0; j < 8; j++){
-            if (tolower(moved.board[i][j]) == 'k' && (islower(moved.board[i][j]) == w2m)) return !isSquareAttacked(moved, i, j, !w2m);
+            if (king == moved.board[i][j]) return !isSquareAttacked(moved, i, j, !w2m);
         }
     }
     return true;
+}
+
+vector<Move> legalMoves(const Position& position){
+    vector<Move> m = pseudoLegalGen(position);
+    vector<Move> legal;
+    legal.reserve(m.size());
+    for (const Move& mv : m)
+        if (validateMove(position, mv)) legal.emplace_back(mv);
+    return legal;
 }

@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include "state.h"
+#include "movegen.h"
 using namespace std;
 Position mainPosition;
 
@@ -42,26 +43,53 @@ void resetState(Position& position, string fenString){
     } else position.eX = position.eY = -1;
     
 }
+
+long long perft(const Position& position, int depth, bool isRoot = true){
+    if (depth == 0) return 1;
+    long long count = 0;
+    if (isRoot){
+        vector<thread> threads;
+        vector<long long> results;
+        for (const Move& m:legalMoves(position)){
+            results.emplace_back(0);
+            size_t i = results.size() - 1;
+            threads.emplace_back([&, m, i]() {
+                results[i] = perft(makeMove(position, m), depth - 1, false);
+            });
+        }
+        for (auto& t : threads){
+            t.join();
+        }
+        for (long long result : results) count += result;
+    } else {
+        for (const Move& m:legalMoves(position)) 
+            count += perft(makeMove(position, m), depth - 1, false);
+    }
+    return count;
+}
+
+
 int main() {
     string command;
     
     while (getline(cin, command)) {
         if (command == "uci") {
             cout << "id name IceEngine\n" << "id author me\n" << "uciok" << endl;
-        }
-        else if (command == "isready") {
+        } else if (command == "isready") {
             cout << "readyok"<< endl;
-        }
-        else if (command == "ucinewgame") {
+        } else if (command == "ucinewgame") {
             resetState(mainPosition, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
-        }
-        else if (command.rfind("position", 0) == 0) {
+        } else if (command.rfind("position", 0) == 0) {
             // parse player move
-        }
-        else if (command.rfind("go", 0) == 0) {
+        } else if (command.rfind("go", 0) == 0) {
             // Run search and output bestmove
-        }
-        else if (command == "quit") {
+        } else if (command == "perft"){
+            //test
+            int depth;
+            cin >> depth;
+            resetState(mainPosition, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+            cout << perft(mainPosition, depth) << endl;
+        } else if (command == "quit") {
             break;
         }
     }
