@@ -1,8 +1,20 @@
 #include <bits/stdc++.h>
 #include "state.h"
 #include "movegen.h"
+#include "bestmove.h"
 using namespace std;
 Position mainPosition;
+
+template <typename T>
+void print2D(const std::vector<std::vector<T>>& matrix) {
+    for (const auto& row : matrix) {
+        for (const auto& elem : row) {
+            cerr << elem << " ";
+        }
+        cerr << endl;
+    }
+}
+
 
 
 void resetState(Position& position, string fenString){
@@ -34,9 +46,10 @@ void resetState(Position& position, string fenString){
     if (castlingRights.find("Q")!=string::npos) position.castle[1] = true;
     if (castlingRights.find("k")!=string::npos) position.castle[2] = true;
     if (castlingRights.find("q")!=string::npos) position.castle[3] = true;
-
+    /*
     string rank = peasant.substr(1, 1); 
     string file = peasant.substr(0, 1); 
+    */
     if (peasant.size() == 2) {
         position.eX = peasant[0] - 'a';
         position.eY = peasant[1] - '1';
@@ -44,30 +57,41 @@ void resetState(Position& position, string fenString){
     
 }
 
-long long perft(const Position& position, int depth, bool isRoot = true){
-    if (depth == 0) return 1;
-    long long count = 0;
-    if (isRoot){
-        vector<thread> threads;
-        vector<long long> results;
-        vector<Move> moves = legalMoves(position);
-        results.reserve(moves.size());
-        for (const Move& m:moves){
-            size_t i = results.size() - 1;
-            threads.emplace_back([&, m, i]() {
-                results[i] = perft(makeMove(position, m), depth - 1, false);
-            });
-        }
-        for (auto& t : threads){
-            t.join();
-        }
-        for (long long result : results) count += result;
-    } else {
-        for (const Move& m:legalMoves(position)) 
-            count += perft(makeMove(position, m), depth - 1, false);
+long long perft(const Position& position, int depth){
+    if (depth <= 1) return perft(position, depth);
+    vector<Move> moves = legalMoves(position);
+    vector<long long> results(moves.size());   
+    vector<thread> threads;
+    for (size_t i = 0; i < moves.size(); i++){
+        threads.emplace_back([&, i]() {
+            results[i] = perft(makeMove(position, moves[i]), depth - 1);
+        });
     }
-    return count;
+    for (thread& t : threads) t.join();        
+    long long total = 0;
+    for (long long r : results) total += r;
+    return total;
 }
+
+bool applyUciMove(Position& pos, const string& uci){
+    int startX = uci[0] - 'a';
+    int startY = uci[1] - '1';
+    int toX = uci[2] - 'a';
+    int toY = uci[3] - '1';
+    char promotion = (uci.size() == 5) ? uci[4] : ' ';
+    vector<Move> moves = legalMoves(pos);
+    for (int i = 0; i < moves.size(); i++){
+        if (startX == moves[i].x && startY == moves[i].y && toX == moves[i].nextX && toY == moves[i].nextY){
+            if (tolower(promotion) == tolower(moves[i].promotion)){
+                pos = makeMove(pos, moves[i]);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
 
 
 int main() {
@@ -81,9 +105,29 @@ int main() {
         } else if (command == "ucinewgame") {
             resetState(mainPosition, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
         } else if (command.rfind("position", 0) == 0) {
-            // parse player move
+            istringstream ss(command);
+            string word;
+            ss >> word; ss >> word;
+            if (word == "startpos"){
+                resetState(mainPosition, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+                ss >> word;
+            }
+            else if (word == "fen"){
+                string fenStr;
+                while (ss >> word && word != "moves")
+                    fenStr += (word + " ");
+                resetState(mainPosition, fenStr);
+            }
+            if (word == "moves")
+                while (ss>>word)
+                    if (!applyUciMove(mainPosition, word)) {
+                        cerr << "movegen missed a move at " << word << " with position " ;
+                        print2D(mainPosition.board);
+                    }
+
         } else if (command.rfind("go", 0) == 0) {
             // Run search and output bestmove
+            cout << "bestmove " << bestMove(mainPosition) << endl;
         } else if (command == "perft"){
             //test
             int depth;
