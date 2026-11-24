@@ -312,12 +312,13 @@ Position makeMove(const Position& position, const Move& m){
     check(m.x, m.y);
     check(m.nextX, m.nextY);
     next.eX = next.eY = -1;
-
+    
     if (m.doubleMoved) { next.eX = m.x; next.eY = (m.y + m.nextY) / 2; }
 
     next.board[m.nextX][m.nextY] = next.board[m.x][m.y];
     next.board[m.x][m.y] = ' ';
-
+    if (next.board[m.nextX][m.nextY] == 'K') next.wk = {m.nextX, m.nextY};
+    if (next.board[m.nextX][m.nextY] == 'k') next.bk = {m.nextX, m.nextY};
     if (m.isCastle){
         if (m.nextX > m.x){
             next.board[m.nextX-1][m.y] = next.board[7][m.y];
@@ -338,14 +339,10 @@ Position makeMove(const Position& position, const Move& m){
 
 bool validateMove(const Position& position, const Move& m){
     bool w2m = position.whiteToMove;
-    char king = w2m ? 'K' : 'k';
     Position moved = makeMove(position, m);
-    for (int i = 0; i < 8; i++){
-        for (int j = 0; j < 8; j++){
-            if (king == moved.board[i][j]) return !isSquareAttacked(moved, i, j, !w2m);
-        }
-    }
-    return true;
+    pair<int, int> king = w2m ? moved.wk : moved.bk;
+
+    return !isSquareAttacked(moved, king.first, king.second, !w2m);
 }
 
 vector<Move> legalMoves(const Position& position){

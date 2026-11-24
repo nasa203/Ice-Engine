@@ -6,7 +6,7 @@ using namespace std;
 Position mainPosition;
 
 template <typename T>
-void print2D(const std::vector<std::vector<T>>& matrix) {
+void print2D(const std::array<std::array<T, 8>, 8>& matrix) {
     for (const auto& row : matrix) {
         for (const auto& elem : row) {
             cerr << elem << " ";
@@ -18,7 +18,7 @@ void print2D(const std::vector<std::vector<T>>& matrix) {
 
 
 void resetState(Position& position, string fenString){
-    position.board.assign(8, std::vector<char>(8, ' '));
+    for (auto& row : position.board) row.fill(' ');
 
     istringstream ss(fenString);
     string boardFen, side, castlingRights, peasant;
@@ -36,6 +36,8 @@ void resetState(Position& position, string fenString){
             continue;
         }
         position.board[x][y] = boardFen[i];
+        if (boardFen[i] == 'K') position.wk = {x, y};
+        if (boardFen[i] == 'k') position.bk = {x, y};
         x++;
     }
 
@@ -56,6 +58,7 @@ void resetState(Position& position, string fenString){
     } else position.eX = position.eY = -1;
     
 }
+
 long long perftnonparalel(const Position& position, int depth){
     if (depth == 0) return 1;
     long long count = 0;
@@ -142,6 +145,12 @@ int main(int argc, char** argv) {
             cin >> depth;
             resetState(mainPosition, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
             cout << perft(mainPosition, depth) << endl;
+        } else if (command == "debugGarden"){
+            resetState(mainPosition, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+            int a = negamaxPlain(mainPosition, 3);
+            cout << a << endl;
+            int b = negamax(mainPosition, 3, -1000000, 1000000);
+            cout << b;
         } else if (command == "quit") {
             break;
         }

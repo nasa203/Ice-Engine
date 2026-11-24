@@ -1,12 +1,17 @@
 #pragma once
 #include <vector>
+#include <utility>
 typedef bool pieceColor;
 struct Position{
-    std::vector<std::vector<char>> board;
+    std::array<std::array<char, 8>, 8> board;
     bool whiteToMove;
     bool castle[4]; // wk, wq, bk, bq
     int eX, eY; // the peasant
+    std::pair<int, int> wk;
+    std::pair<int, int> bk;
 };
+
+
 struct Move {
     int x, y, nextX, nextY;
     char promotion = ' ';  

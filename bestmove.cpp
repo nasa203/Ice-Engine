@@ -39,7 +39,7 @@ int evaluate(const Position& position){
 
 const int INF = 1000000;
 const int MATE = 100000;
-int negamax(const Position& position, int depth){
+int negamaxPlain(const Position& position, int depth){
     vector<Move> moves = legalMoves(position);
     if (moves.empty()){
         char king = position.whiteToMove ? 'K' : 'k';
@@ -53,24 +53,47 @@ int negamax(const Position& position, int depth){
     if (depth == 0) return evaluate(position);
     int best = -INF;
     for (const Move& m : moves)
-        best = max(best, -negamax(makeMove(position, m), depth - 1));
+        best = max(best, -negamaxPlain(makeMove(position, m), depth - 1));
+    return best;
+}
+
+int negamax(const Position& position, int depth, int alpha, int beta){
+    pair<int, int> king = position.whiteToMove ? position.wk : position.bk;
+    bool inCheck = isSquareAttacked(position, king.first, king.second, !position.whiteToMove);
+    if (depth == 0) {
+        if (!inCheck)
+            return evaluate(position);
+    }
+    vector<Move> moves = legalMoves(position);
+    if (moves.size() == 0)
+        return (inCheck) ? -MATE-depth : 0; 
+    if (depth == 0)
+        return evaluate(position);
+    int best = -INF;
+    int score = -INF;
+    for (const Move& m : moves){
+        score = -negamax(makeMove(position, m), depth - 1, -beta, -alpha);
+        best = max(best, score);
+        alpha = max(alpha, score);
+        if (alpha>=beta) break;
+    }
     return best;
 }
 
 
 
-int random(const Position& position, vector<Move> baseMoves){
+int random(vector<Move> baseMoves){
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> dis(1, baseMoves.size()-1);
+    uniform_int_distribution<> dis(0, baseMoves.size()-1);
     return dis(gen);
 }
 
-int mostMaterial(const Position& position, const vector<Move>& baseMoves){
+int mostMaterial(const Position& position, const vector<Move>& baseMoves, int depth){
     int bestScore = -INF;
     vector<int> bestIndices;
     for (int i = 0; i < (int)baseMoves.size(); i++){
-        int score = -negamax(makeMove(position, baseMoves[i]), 2);
+        int score = -negamax(makeMove(position, baseMoves[i]), depth-1, -INF, INF);
         if (score > bestScore){
             bestScore = score;
             bestIndices.clear();
@@ -93,10 +116,11 @@ int mostMaterial(const Position& position, const vector<Move>& baseMoves){
 
 
 int pickIndex(const Position& position, const vector<Move>& moves){
-    if (engineName == "random")   return random(position, moves);
-    if (engineName == "material") return mostMaterial(position, moves);
+    if (engineName == "random")   return random(moves);
+    if (engineName == "material") return mostMaterial(position, moves, 4);
+    if (engineName == "materialLite") return mostMaterial(position, moves, 3);
     cerr << "unknown engine '" << engineName << "', falling back to random\n";
-    return random(position, moves);
+    return random(moves);
 }
 
 string bestMove(const Position& position){
