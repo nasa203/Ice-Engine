@@ -2,3 +2,4 @@
 #include "state.h"
 #include <string>
 std::string bestMove(const Position& position);
+extern std::string engineName;

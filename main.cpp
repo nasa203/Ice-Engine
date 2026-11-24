@@ -56,9 +56,16 @@ void resetState(Position& position, string fenString){
     } else position.eX = position.eY = -1;
     
 }
+long long perftnonparalel(const Position& position, int depth){
+    if (depth == 0) return 1;
+    long long count = 0;
+    for (const Move& m : legalMoves(position))
+        count += perftnonparalel(makeMove(position, m), depth - 1);
+    return count;
+}
 
 long long perft(const Position& position, int depth){
-    if (depth <= 1) return perft(position, depth);
+    if (depth <= 1) return perftnonparalel(position, depth);
     vector<Move> moves = legalMoves(position);
     vector<long long> results(moves.size());   
     vector<thread> threads;
@@ -94,9 +101,10 @@ bool applyUciMove(Position& pos, const string& uci){
 
 
 
-int main() {
+int main(int argc, char** argv) {
+    extern string engineName;
     string command;
-    
+    if (argc>1) engineName = argv[1];
     while (getline(cin, command)) {
         if (command == "uci") {
             cout << "id name IceEngine\n" << "id author me\n" << "uciok" << endl;
