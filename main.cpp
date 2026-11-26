@@ -74,7 +74,7 @@ long long perft(const Position& position, int depth){
     vector<thread> threads;
     for (size_t i = 0; i < moves.size(); i++){
         threads.emplace_back([&, i]() {
-            results[i] = perft(makeMove(position, moves[i]), depth - 1);
+            results[i] = perftnonparalel(makeMove(position, moves[i]), depth - 1);
         });
     }
     for (thread& t : threads) t.join();        
@@ -106,6 +106,7 @@ bool applyUciMove(Position& pos, const string& uci){
 
 int main(int argc, char** argv) {
     extern string engineName;
+    extern long long nodes;
     string command;
     if (argc>1) engineName = argv[1];
     while (getline(cin, command)) {
@@ -147,10 +148,12 @@ int main(int argc, char** argv) {
             cout << perft(mainPosition, depth) << endl;
         } else if (command == "debugGarden"){
             resetState(mainPosition, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
-            int a = negamaxPlain(mainPosition, 3);
-            cout << a << endl;
-            int b = negamax(mainPosition, 3, -1000000, 1000000);
-            cout << b;
+            nodes = 0;
+            int a = negamaxOrdered(mainPosition, 5, -1000000, 1000000);
+            cout << a << endl << nodes << endl;
+            nodes = 0;
+            int b = negamax(mainPosition, 5, -1000000, 1000000);
+            cout << b << endl << nodes << endl;
         } else if (command == "quit") {
             break;
         }
