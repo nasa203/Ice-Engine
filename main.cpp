@@ -149,11 +149,14 @@ int main(int argc, char** argv) {
         } else if (command == "debugGarden"){
             resetState(mainPosition, "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
             nodes = 0;
-            int a = negamaxOrdered(mainPosition, 5, -1000000, 1000000);
+            int a = negamaxOrdered(mainPosition, 5, -1000000, 1000000, true);
             cout << a << endl << nodes << endl;
             nodes = 0;
-            int b = negamax(mainPosition, 5, -1000000, 1000000);
+            int b = negamaxOrdered(mainPosition, 5, -1000000, 1000000, false);
             cout << b << endl << nodes << endl;
+        } else if (command == "debugPST"){
+            resetState(mainPosition, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+            cout << evaluatePST(mainPosition);
         } else if (command == "quit") {
             break;
         }

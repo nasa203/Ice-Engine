@@ -3,3 +3,4 @@ playwright_data/
 .vscode/
 main.exe
 IceEngine.exe
+lichess_bot_auto_logs/
